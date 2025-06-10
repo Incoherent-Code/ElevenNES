@@ -1,2 +1,2 @@
-﻿using var game = new ElevenNES.Game1();
+﻿using var game = new ElevenNES.ElevenNES();
 game.Run();
