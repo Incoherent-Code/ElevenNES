@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+	<CodeSnippet Format="1.0.0">
+		<Header>
+			<Title>CPU Instruction</Title>
+			<Shortcut>cpuins</Shortcut>
+		</Header>
+		<Snippet>
+			<Code Language="CSharp">
+				<![CDATA[InstructionTable[_6502OPCode.$instruction$] = new OPCodeInfo {
+            ExecuteFunction = $function$,
+            GetOperand = $operandfunc$,
+            CycleTime = $cycles$
+         };]]>
+			</Code>
+			<Declarations>
+				<Literal>
+					<ID>instruction</ID>
+					<ToolTip>6502 Instruction</ToolTip>
+					<Default>BRK</Default>
+				</Literal>
+				<Literal>
+					<ID>function</ID>
+					<ToolTip>Function for instruction</ToolTip>
+					<Default>BRK</Default>
+				</Literal>
+				<Literal>
+					<ID>operandfunc</ID>
+					<ToolTip>Function for retrieveing operand</ToolTip>
+					<Default>ImpliedOperand</Default>
+				</Literal>
+				<Literal>
+					<ID>cycles</ID>
+					<ToolTip>Function instruction time</ToolTip>
+					<Default>1</Default>
+				</Literal>
+			</Declarations>
+		</Snippet>
+	</CodeSnippet>
+</CodeSnippets>

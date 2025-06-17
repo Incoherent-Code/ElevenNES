@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+	<CodeSnippet Format="1.0.0">
+		<Header>
+			<Title>CPU All Instructions</Title>
+			<Description>Adds the full set of Operands to a particular instruction</Description>
+			<Shortcut>cpuallins</Shortcut>
+		</Header>
+		<Snippet>
+			<Code Language="CSharp">
+				<![CDATA[InstructionTable[_6502OPCode.$instruction$_Imm] = new OPCodeInfo {
+            ExecuteFunction = $function$,
+            GetOperand = PopImmediateOperand,
+            CycleTime = 2
+         };
+         InstructionTable[_6502OPCode.$instruction$_Zer] = new OPCodeInfo {
+            ExecuteFunction = $function$,
+            GetOperand = PopZeroPageOperand,
+            CycleTime = 3
+         };
+         InstructionTable[_6502OPCode.$instruction$_ZerX] = new OPCodeInfo {
+            ExecuteFunction = $function$,
+            GetOperand = PopZeroPageXOperand,
+            CycleTime = 4,
+         };
+         InstructionTable[_6502OPCode.$instruction$_Abs] = new OPCodeInfo {
+            ExecuteFunction = $function$,
+            GetOperand = PopAbsoluteOperand,
+            CycleTime = 4,
+         };
+         InstructionTable[_6502OPCode.$instruction$_AbsX] = new OPCodeInfo {
+            ExecuteFunction = $function$,
+            GetOperand = PopAbsoluteXOperandWPCPenalty,
+            CycleTime = 4,
+         };
+         InstructionTable[_6502OPCode.$instruction$_AbsY] = new OPCodeInfo {
+            ExecuteFunction = $function$,
+            GetOperand = PopAbsoluteYOperandWPCPenalty,
+            CycleTime = 4,
+         };
+         InstructionTable[_6502OPCode.$instruction$_IndX] = new OPCodeInfo {
+            ExecuteFunction = $function$,
+            GetOperand = PopIndexedIndirectXOperand,
+            CycleTime = 6
+         };
+         InstructionTable[_6502OPCode.$instruction$_IndY] = new OPCodeInfo {
+            ExecuteFunction = $function$,
+            GetOperand = PopIndirectIndexedYOperandWPGPenalty,
+            CycleTime = 5
+         };]]>
+			</Code>
+			<Declarations>
+				<Literal>
+					<ID>instruction</ID>
+					<ToolTip>6502 Instruction</ToolTip>
+					<Default>ADC</Default>
+				</Literal>
+				<Literal>
+					<ID>function</ID>
+					<ToolTip>Function for instruction</ToolTip>
+					<Default>ADC</Default>
+				</Literal>
+			</Declarations>
+		</Snippet>
+	</CodeSnippet>
+</CodeSnippets>

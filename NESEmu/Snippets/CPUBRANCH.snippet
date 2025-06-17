@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+	<CodeSnippet Format="1.0.0">
+		<Header>
+			<Title>CPU Branching Instruction</Title>
+			<Shortcut>cpubranch</Shortcut>
+		</Header>
+		<Snippet>
+			<Code Language="CSharp">
+				<![CDATA[InstructionTable[_6502OPCode.$instruction$_Rel] = new OPCodeInfo {
+            ExecuteFunction = (operand) => BranchWithPenalty(() => $condition$, operand),
+            GetOperand = PopRelativeOperand,
+            CycleTime = 2
+         };]]>
+			</Code>
+			<Declarations>
+				<Literal>
+					<ID>instruction</ID>
+					<ToolTip>6502 Instruction</ToolTip>
+					<Default>BMI</Default>
+				</Literal>
+				<Literal>
+					<ID>condition</ID>
+					<ToolTip>Condition to branch</ToolTip>
+					<Default>NegativeFlag</Default>
+				</Literal>
+			</Declarations>
+		</Snippet>
+	</CodeSnippet>
+</CodeSnippets>
