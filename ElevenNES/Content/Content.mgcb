@@ -13,3 +13,12 @@
 
 #---------------------------------- Content ---------------------------------#
 
+#begin Fonts/QuanPixel-License.txt
+/copy:Fonts/QuanPixel-License.txt
+
+#begin Fonts/QuanPixel-standard.fnt
+/copy:Fonts/QuanPixel-standard.fnt
+
+#begin Fonts/QuanPixel-standard.png
+/copy:Fonts/QuanPixel-standard.png
+

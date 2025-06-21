@@ -1,26 +1,39 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MonoGameGum;
+using MonoGameGum.Forms.Controls;
 
 namespace ElevenNES {
    public class ElevenNES : Game {
-      private GraphicsDeviceManager _graphics;
-      private SpriteBatch _spriteBatch;
+      public GraphicsDeviceManager Graphics;
+      public SpriteBatch SpriteBatch;
+      public UI.UI UI;
+      public static int Scale = 3;
 
       public ElevenNES() {
-         _graphics = new GraphicsDeviceManager(this);
+         Graphics = new GraphicsDeviceManager(this) {
+            PreferredBackBufferHeight = 240 * Scale,
+            PreferredBackBufferWidth = 280 * Scale
+         };
+         Graphics.ApplyChanges();
+
+         Window.Title = "ElevenNES";
+
          Content.RootDirectory = "Content";
          IsMouseVisible = true;
       }
 
       protected override void Initialize() {
-         // TODO: Add your initialization logic here
+         InitializeGum();
+         UI = new UI.UI(this);
 
          base.Initialize();
       }
 
       protected override void LoadContent() {
-         _spriteBatch = new SpriteBatch(GraphicsDevice);
+         SpriteBatch = new SpriteBatch(GraphicsDevice);
 
          // TODO: use this.Content to load your game content here
       }
@@ -29,17 +42,43 @@ namespace ElevenNES {
          if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
 
-         // TODO: Add your update logic here
+         GumService.Default.Update(gameTime);
 
          base.Update(gameTime);
       }
 
       protected override void Draw(GameTime gameTime) {
-         GraphicsDevice.Clear(Color.CornflowerBlue);
+         GraphicsDevice.Clear(Color.Black);
 
-         // TODO: Add your drawing code here
+         GumService.Default.Draw();
 
          base.Draw(gameTime);
       }
+      private void InitializeGum() {
+         // Initialize the Gum service
+         GumService.Default.Initialize(this);
+         GumService.Default.ContentLoader.XnaContentManager = Content;
+
+         // Register keyboard input for UI control.
+         FrameworkElement.KeyboardsForUiControl.Add(GumService.Default.Keyboard);
+
+         // Register gamepad input for Ui control.
+         FrameworkElement.GamePadsForUiControl.AddRange(GumService.Default.Gamepads);
+
+         // Customize the tab reverse UI navigation to also trigger when the keyboard
+         // Up arrow key is pushed.
+         FrameworkElement.TabReverseKeyCombos.Add(
+            new KeyCombo() { PushedKey = Keys.Up });
+
+         // Customize the tab UI navigation to also trigger when the keyboard
+         // Down arrow key is pushed.
+         FrameworkElement.TabKeyCombos.Add(
+            new KeyCombo() { PushedKey = Keys.Down });
+
+         GumService.Default.CanvasWidth = this.Window.ClientBounds.Width;
+         GumService.Default.CanvasHeight = this.Window.ClientBounds.Height;
+         GumService.Default.Renderer.Camera.Zoom = 1f;
+      }
+
    }
 }
