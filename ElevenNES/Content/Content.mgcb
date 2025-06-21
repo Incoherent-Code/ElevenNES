@@ -22,3 +22,6 @@
 #begin Fonts/QuanPixel-standard.png
 /copy:Fonts/QuanPixel-standard.png
 
+#begin Roms/staticsprite.nes
+/copy:Roms/staticsprite.nes
+
