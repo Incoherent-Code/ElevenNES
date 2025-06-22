@@ -6,6 +6,7 @@ using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using static NESEmu.NESEmulator;
 
 namespace NESEmu.CPU {
    /// <summary>
@@ -71,9 +72,6 @@ namespace NESEmu.CPU {
       /// This can be an action to do after the CPU is done waiting.
       /// </summary>
       private Action? DelegatedAction;
-
-      public delegate byte BusReadDelegate(ushort address);
-      public delegate void BusWriteDelegate(ushort address, byte data);
 
       /// <summary>
       /// How the CPU should read memory.
