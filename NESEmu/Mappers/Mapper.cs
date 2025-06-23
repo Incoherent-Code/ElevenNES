@@ -43,7 +43,7 @@ namespace NESEmu.Mappers {
          file.Read(ProgramROM, 0, PGMBytes);
          var CHROMBytes = Header.CharacterRomSize * 8192;
          CharacterROM = new byte[CHROMBytes];
-         file.Read(ProgramRAM, 0, CHROMBytes);
+         file.Read(CharacterROM, 0, CHROMBytes);
          if (Header.BatteryBackup) {
             //TODO: Proper Versatile Implimentation
             ProgramRAM = new byte[8192];

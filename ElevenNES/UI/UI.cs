@@ -65,6 +65,9 @@ namespace ElevenNES.UI {
          TopBar.AddChild(FileButton);
          FileButton.Click += (_, _) => {
             var result = Dialog.FileOpen("nes");
+            if (result.IsOk) {
+               Game.ChangeGame(result.Path);
+            }
          };
 
       }

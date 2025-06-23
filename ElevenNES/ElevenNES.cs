@@ -4,6 +4,9 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGameGum;
 using MonoGameGum.Forms.Controls;
+using NESEmu;
+using System;
+using System.IO;
 
 namespace ElevenNES {
    public class ElevenNES : Game {
@@ -11,6 +14,7 @@ namespace ElevenNES {
       public SpriteBatch SpriteBatch;
       public UI.UI UI;
       public static int Scale = 3;
+      public NESEmulator NESEmulator;
 
       public ElevenNES() {
          Graphics = new GraphicsDeviceManager(this) {
@@ -34,24 +38,19 @@ namespace ElevenNES {
 
       protected override void LoadContent() {
          SpriteBatch = new SpriteBatch(GraphicsDevice);
-
-         // TODO: use this.Content to load your game content here
+         NESEmulator = new NESEmulator(Path.Combine(Content.RootDirectory, "Roms", "staticsprite.nes"));
       }
 
       protected override void Update(GameTime gameTime) {
-         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-            Exit();
-
+         NESEmulator?.Update();
          GumService.Default.Update(gameTime);
-
          base.Update(gameTime);
       }
 
       protected override void Draw(GameTime gameTime) {
          GraphicsDevice.Clear(Color.Black);
-
+         NESEmulator?.Draw();
          GumService.Default.Draw();
-
          base.Draw(gameTime);
       }
       private void InitializeGum() {
@@ -79,6 +78,9 @@ namespace ElevenNES {
          GumService.Default.CanvasHeight = this.Window.ClientBounds.Height;
          GumService.Default.Renderer.Camera.Zoom = 1f;
       }
-
+      public void ChangeGame(string FileName) {
+         //TODO: Error Catching
+         NESEmulator = new NESEmulator(FileName);
+      }
    }
 }

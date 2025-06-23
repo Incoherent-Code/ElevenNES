@@ -9,7 +9,7 @@ using System.IO;
 
 namespace NESEmu {
    public class NESEmulator {
-      public CPU.CPU NESCPU = new CPU.CPU();
+      public CPU.CPU CPU = new CPU.CPU();
       public byte[] WorkRam = new byte[2048];
       public byte[] VRAM = new byte[2048];
       public Mapper Cartridge;
@@ -37,16 +37,33 @@ namespace NESEmu {
                parsedHeader = new iNESHeader(header);
             }
             Cartridge = MapperFactory.CreateMapper(parsedHeader, nesFile);
-            Cartridge.InteruptCPU = () => NESCPU.TriggerInteruptIRQ();
+            Cartridge.InteruptCPU = () => CPU.TriggerInteruptIRQ();
          }
 
+         CPU.ReadMemory = (address) => {
+            if (address < 0x1FFF) {
+               return WorkRam[address % 2048];
+            }
+            else {
+               return Cartridge.ReadValueCPU(address);
+            }
+         };
+
+         CPU.WriteMemory = (address, data) => {
+            if (address < 0x1FFF) {
+               WorkRam[address % 2048] = data;
+            }
+            else {
+               Cartridge.WriteValueCPU(address, data);
+            }
+         };
       }
       public void Update() {
-
+         CPU.ExecuteCPUCyles(27552);
       }
 
       public void Draw() {
-
+         CPU.ExecuteCPUCyles(2277);
       }
    }
 }
