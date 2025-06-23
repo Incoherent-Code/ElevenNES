@@ -13,6 +13,21 @@ namespace NESEmu {
       public byte[] WorkRam = new byte[2048];
       public byte[] VRAM = new byte[2048];
       public Mapper Cartridge;
+
+      private ShiftRegister8Bit Controller1Register = new();
+      private ShiftRegister8Bit Controller2Register = new();
+      /// <summary>
+      /// Function to get the controller's value. Bits should be in this order (highest to lowest bit):
+      /// DPAD_RIGHT, DPAD_LEFT, DPAD_DOWN, DPAD_UP
+      /// START, SELECT, B, A
+      /// </summary>
+      public Func<byte> GetController1 { get => Controller1Register.Input; set => Controller1Register.Input = value; }
+      /// <summary>
+      /// Function to get the controller's value. Bits should be in this order (highest to lowest bit):
+      /// DPAD_RIGHT, DPAD_LEFT, DPAD_DOWN, DPAD_UP
+      /// START, SELECT, B, A
+      /// </summary>
+      public Func<byte> GetController2 { get => Controller2Register.Input; set => Controller2Register.Input = value; }
         
       public delegate byte BusReadDelegate(ushort address);
       public delegate void BusWriteDelegate(ushort address, byte data);
@@ -41,7 +56,7 @@ namespace NESEmu {
          }
 
          CPU.ReadMemory = (address) => {
-            if (address < 0x1FFF) {
+            if (address <= 0x1FFF) {
                return WorkRam[address % 2048];
             }
             else {
@@ -50,7 +65,7 @@ namespace NESEmu {
          };
 
          CPU.WriteMemory = (address, data) => {
-            if (address < 0x1FFF) {
+            if (address <= 0x1FFF) {
                WorkRam[address % 2048] = data;
             }
             else {

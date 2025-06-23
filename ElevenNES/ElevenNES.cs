@@ -38,7 +38,7 @@ namespace ElevenNES {
 
       protected override void LoadContent() {
          SpriteBatch = new SpriteBatch(GraphicsDevice);
-         NESEmulator = new NESEmulator(Path.Combine(Content.RootDirectory, "Roms", "staticsprite.nes"));
+         ChangeGame(Path.Combine(Content.RootDirectory, "Roms", "staticsprite.nes"));
       }
 
       protected override void Update(GameTime gameTime) {
@@ -81,6 +81,23 @@ namespace ElevenNES {
       public void ChangeGame(string FileName) {
          //TODO: Error Catching
          NESEmulator = new NESEmulator(FileName);
+         NESEmulator.GetController1 = () => GetNESGamepadState(PlayerIndex.One);
+         NESEmulator.GetController2 = () => GetNESGamepadState(PlayerIndex.Two);
+      }
+      //TODO: Remapping
+      public byte GetNESGamepadState(PlayerIndex Player) {
+         int output = 0;
+         var gpadState = GamePad.GetState(Player);
+         output += (gpadState.DPad.Right == ButtonState.Pressed) ? 128 : 0;
+         output += (gpadState.DPad.Left == ButtonState.Pressed) ? 64 : 0;
+         output += (gpadState.DPad.Down == ButtonState.Pressed) ? 32 : 0;
+         output += (gpadState.DPad.Up == ButtonState.Pressed) ? 16 : 0;
+         output += (gpadState.Buttons.Start == ButtonState.Pressed) ? 8 : 0;
+         output += (gpadState.Buttons.Back == ButtonState.Pressed) ? 4 : 0;
+         output += (gpadState.Buttons.B == ButtonState.Pressed) ? 2 : 0;
+         output += (gpadState.Buttons.A == ButtonState.Pressed) ? 1 : 0;
+
+         return (byte)output;
       }
    }
 }
