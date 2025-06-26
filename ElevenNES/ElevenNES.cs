@@ -13,13 +13,12 @@ namespace ElevenNES {
       public GraphicsDeviceManager Graphics;
       public SpriteBatch SpriteBatch;
       public UI.UI UI;
-      public static int Scale = 3;
       public NESEmulator NESEmulator;
 
       public ElevenNES() {
          Graphics = new GraphicsDeviceManager(this) {
-            PreferredBackBufferHeight = 240 * Scale,
-            PreferredBackBufferWidth = 280 * Scale
+            PreferredBackBufferHeight = 240 * Config.Instance.Scale,
+            PreferredBackBufferWidth = 280 * Config.Instance.Scale
          };
          Graphics.ApplyChanges();
 
@@ -78,6 +77,11 @@ namespace ElevenNES {
          GumService.Default.CanvasHeight = this.Window.ClientBounds.Height;
          GumService.Default.Renderer.Camera.Zoom = 1f;
       }
+      /// <summary>
+      /// Initializes the NES Emulator with the file provided.
+      /// Can be called multiple times to reinitialize / reset the Emulation.
+      /// </summary>
+      /// <param name="FileName"></param>
       public void ChangeGame(string FileName) {
          //TODO: Error Catching
          NESEmulator = new NESEmulator(FileName);

@@ -4,6 +4,7 @@ using Gum.DataTypes;
 using Gum.DataTypes.Variables;
 using Gum.Graphics.Animation;
 using Gum.Managers;
+using Microsoft.VisualBasic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using MonoGameGum;
@@ -27,6 +28,7 @@ namespace ElevenNES.UI {
       public ContainerRuntime RootPanel;
       public ContainerRuntime TopBar;
       public TopButton FileButton = new TopButton("File");
+      public Dropdown FileDropdown;
       private ElevenNES Game;
       public UI(ElevenNES game) {
          Game = game;
@@ -42,32 +44,45 @@ namespace ElevenNES.UI {
          //InteralPanel.AddToRoot();
 
          RootPanel = new ContainerRuntime() {
-            Height = 240 * ElevenNES.Scale,
-            Width = 280 * ElevenNES.Scale,
+            Height = 240 * Config.Instance.Scale,
+            Width = 280 * Config.Instance.Scale,
          };
          //RootPanel.Anchor(Gum.Wireframe.Anchor.Center);
          //InteralPanel.AddChild(RootPanel);
          RootPanel.AddToRoot();
          TopBar = new ContainerRuntime() {
-            Height = 16 * ElevenNES.Scale,
+            Height = 16 * Config.Instance.Scale,
          };
          TopBar.Dock(Gum.Wireframe.Dock.Top);
          RootPanel.AddChild(TopBar);
 
          var backgroundTile = new ColoredRectangleRuntime() {
-            Color = Color.LightGray
+            Color = new Color(0, 0, 127)
          };
          backgroundTile.Dock(Gum.Wireframe.Dock.Fill);
          TopBar.AddChild(backgroundTile);
 
-         FileButton.Visual.X = 1 * ElevenNES.Scale;
-         FileButton.Visual.Y = 1 * ElevenNES.Scale;
+         FileDropdown = new Dropdown([
+            new DropdownEntryInfo("Open File...", Keys.O, () => {
+               var result = Dialog.FileOpen("nes");
+               if (result.IsOk) {
+                  Game.ChangeGame(result.Path);
+               }
+            }), 
+            new DropdownEntryInfo("Reset", Keys.R, () => {
+               var current = Game.NESEmulator.CurrentGamePath;
+               Game.ChangeGame(current);
+            })
+         ]);
+         FileDropdown.Y = 16 * Config.Instance.Scale;
+         FileDropdown.X = 0;
+         RootPanel.AddChild(FileDropdown);
+
+         FileButton.Visual.X = 2 * Config.Instance.Scale;
+         FileButton.Visual.Y = 2 * Config.Instance.Scale;
          TopBar.AddChild(FileButton);
          FileButton.Click += (_, _) => {
-            var result = Dialog.FileOpen("nes");
-            if (result.IsOk) {
-               Game.ChangeGame(result.Path);
-            }
+            FileDropdown.Visible = !FileDropdown.Visible;
          };
 
       }
