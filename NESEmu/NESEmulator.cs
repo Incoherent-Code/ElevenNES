@@ -13,6 +13,7 @@ namespace NESEmu {
       public byte[] WorkRam = new byte[2048];
       public byte[] VRAM = new byte[2048];
       public Mapper Cartridge;
+      public string CurrentGamePath;
 
       private ShiftRegister8Bit Controller1Register = new();
       private ShiftRegister8Bit Controller2Register = new();
@@ -32,6 +33,7 @@ namespace NESEmu {
       public delegate byte BusReadDelegate(ushort address);
       public delegate void BusWriteDelegate(ushort address, byte data);
       public NESEmulator(string filePath) {
+         CurrentGamePath = filePath;
          using (var nesFile = File.OpenRead(filePath)) {
             //This isnt reading the header info yet, Rather it is identifying the file
             //See: https://www.nesdev.org/wiki/INES
@@ -59,6 +61,12 @@ namespace NESEmu {
             if (address <= 0x1FFF) {
                return WorkRam[address % 2048];
             }
+            else if (address == 0x4016) {
+               return Controller1Register.IORegister;
+            }
+            else if (address == 0x4017) {
+               return Controller2Register.IORegister;
+            }
             else {
                return Cartridge.ReadValueCPU(address);
             }
@@ -67,6 +75,11 @@ namespace NESEmu {
          CPU.WriteMemory = (address, data) => {
             if (address <= 0x1FFF) {
                WorkRam[address % 2048] = data;
+            }
+            else if (address == 0x4016) {
+               //The latching of the controller inputs are bound together
+               Controller1Register.IORegister = data;
+               Controller2Register.IORegister = data;
             }
             else {
                Cartridge.WriteValueCPU(address, data);
