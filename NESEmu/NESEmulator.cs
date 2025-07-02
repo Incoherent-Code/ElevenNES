@@ -62,10 +62,10 @@ namespace NESEmu {
                return WorkRam[address % 2048];
             }
             else if (address == 0x4016) {
-               return Controller1Register.IORegister;
+               return (byte)(Controller1Register.ReadWithPulse() ? 1 : 0);
             }
             else if (address == 0x4017) {
-               return Controller2Register.IORegister;
+               return (byte)(Controller2Register.ReadWithPulse() ? 1 : 0);
             }
             else {
                return Cartridge.ReadValueCPU(address);
@@ -78,8 +78,14 @@ namespace NESEmu {
             }
             else if (address == 0x4016) {
                //The latching of the controller inputs are bound together
-               Controller1Register.IORegister = data;
-               Controller2Register.IORegister = data;
+               if ((data & 1) == 1) {
+                  Controller1Register.PullLatchHIGH();
+                  Controller2Register.PullLatchHIGH();
+               }
+               else {
+                  Controller1Register.PullLatchLOW();
+                  Controller2Register.PullLatchLOW();
+               }
             }
             else {
                Cartridge.WriteValueCPU(address, data);

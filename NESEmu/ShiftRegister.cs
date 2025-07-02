@@ -26,20 +26,12 @@ namespace NESEmu {
          LatchedData = (byte)(LatchedData >> 1);
       }
       /// <summary>
-      /// Simulates an NES IO Register mapped to a shift register. (As seen in controller IO).
-      /// Reading will automatically read the value and shift the shift register.
-      /// Writing will write to the "Latch pin" of the shift register.
+      /// Reads a value, then pulses the clock to incriment to the next value
       /// </summary>
-      public byte IORegister { get {
-            var output = (byte)(LatchedData & 1);
-            PulseClock();
-            return output;
-         } 
-         set {
-            if ((value & 1) == 1)
-               PullLatchHIGH();
-            else 
-               PullLatchLOW();
-         } }
+      public bool ReadWithPulse() {
+         var value = ReadOutput();
+         PulseClock();
+         return value;
+      }
    }
 }
