@@ -68,13 +68,89 @@ namespace NESEmuTests.CPU {
                STA_Abs, 05, 00,
                NOP
                ])
-            .runCycles(255)
+            .RunCycles(255)
             .AssertMemoryValue(0x0000, 24, "STA Failed")
             .AssertMemoryValue(0x0001, 48, "ASL Failed")
             .AssertMemoryValue(0x0002, 24, "SBC Failed")
             .AssertMemoryValue(0x0003, 50, "ADC or LSR Failed")
             .AssertMemoryValue(0x0004, 178, "ORA Failed")
             .AssertMemoryValue(0x0005, 23, "Carry Test Failed");
+      }
+      [TestMethod]
+      public void InteruptTest() {
+         CPUBasicTestEnviornment.GetNew()
+            .WithIRQHandler([
+               INX, //2 cycles
+               LDA_Imm, 1, //2 cycles
+               STA_ZerX, 0, //4 cycles
+               RTI //6 cycles
+               ])
+            .WithNMIHandler([
+               INX,
+               LDA_Imm, 2,
+               STA_ZerX, 0,
+               RTI
+               ])
+            .WithProgram([
+               BRK,
+               INY,//32 INYs
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               INY,
+               STY_Abs, 0, 1,
+               CLC,
+               NOP,
+               BCC_Rel, 0b11111101 //-3
+               ])
+            .RunCycles(11) //BRK + INX + LDA_IMM
+            .RunCycles(3)
+            .AssertMemoryValue(0x0001, 0, "Break Instruction Executed Too Early")
+            .RunCycles(1)
+            .AssertMemoryValue(0x0001, 1, "Break Handler took longer than expected")
+            .RunCycles(6) //RTI
+            .RunCycles(12) //Move through some of the INYs
+            .TriggerIRQ() //Tests NMI overrides
+            .RunCycles(3)
+            .TriggerNMI()
+            .RunCycles(22)
+            .AssertMemoryValue(0x0002, 2, "NMI may not have overriden the IRQ interupt")
+            .RunCycles(7) //Just move through more of the code
+            .TriggerIRQ()
+            .RunCycles(1) //IRQ should not have triggered yet
+            .RunCycles(15)
+            .AssertMemoryValue(0x0003, 1, "IRQ did not trigger on time")
+            .RunCycles(6)
+            .RunCycles(512)
+            .AssertMemoryValue(0x0100, 32, "Interupts interfered with amount of times Y was incrimented");
+
       }
    }
 }

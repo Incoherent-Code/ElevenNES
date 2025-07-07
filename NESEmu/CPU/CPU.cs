@@ -24,6 +24,11 @@ namespace NESEmu.CPU {
       private bool BreakFlag;
       private bool OverflowFlag;
       private bool NegativeFlag;
+
+      //Important as NMIs can override IRQ even 4 ticks into IRQ
+      private bool IsPendingNMI = false;
+      private bool IsPendingIRQ = false;
+      public Int64 CycleCount { get; private set; } = 0;
       private int IntFromBool(bool answer) {
          return (answer ? 1 : 0);
       }
@@ -152,6 +157,13 @@ namespace NESEmu.CPU {
          DelegatedCycles += cycles;
          DelegatedAction = null;
       }
+      /// <summary>
+      /// Clears any pending action from the cpu on the next cycles. 
+      /// </summary>
+      private void ClearWait() {
+         DelegatedCycles = 0;
+         DelegatedAction = null;
+      }
       private bool IsCrossingPage(ushort newAddress, byte offset) {
          var dif = (ushort)(newAddress - offset);
          return (dif & 0xFF00) != (newAddress & 0xFF00);
@@ -242,18 +254,15 @@ namespace NESEmu.CPU {
       public void TriggerInteruptIRQ() {
          if (InteruptDisableFlag)
             return;
-         var ExecuteAddress = (ushort)(ReadMemory(0xFFFE) | ReadMemory(0xFFFF) << 8);
-         PHP(0);
-         PHA(0);
-         PushStackUShort(ProgramCounter);
-         JMP(ExecuteAddress);
-         WaitCycles(6);
+         IsPendingIRQ = true;
       }
       public void TriggerInteruptNMI() {
-         throw new Exception("Unimplimented");
+         IsPendingNMI = true;
       }
       public void ExecuteCPUCyles(int cycles) {
          for (int i = 0; i < cycles; i++) {
+            CycleCount++;
+
             if (DelegatedCycles > 0) {
                DelegatedCycles--;
                if (DelegatedCycles == 0 && DelegatedAction != null) {
@@ -261,12 +270,36 @@ namespace NESEmu.CPU {
                }
                continue;
             }
+            //Interupt Handler
+            if (IsPendingIRQ || IsPendingNMI) {
+               BreakFlag = true;
+               PHP(0);
+               PHA(0);
+               PushStackUShort(ProgramCounter);
+               DelegateCycles(3, () => {
+                  ushort address;
+                  if (IsPendingNMI)
+                     address = (ushort)(ReadMemory(0xFFFA) | ReadMemory(0xFFFB) << 8);
+                  else
+                     address = (ushort)(ReadMemory(0xFFFE) | ReadMemory(0xFFFF) << 8);
+                  IsPendingIRQ = false;
+                  IsPendingNMI = false;
+                  JMP(address);
+                  WaitCycles(2);
+               });
+               continue;
+            }
+
             byte instruction = PopProgramByte();
             var instructionInfo = InstructionTable[instruction];
             if (instructionInfo.CycleTime == 0) {
                throw new CPUException("Invalid Instruction Found.", instruction, (ushort)(ProgramCounter - 1));
             }
             var operand = instructionInfo.GetOperand();
+            if (instructionInfo.CycleTime == 1) {
+               instructionInfo.ExecuteFunction(operand);
+               continue;
+            }
             DelegateCycles(instructionInfo.CycleTime - 1, () => instructionInfo.ExecuteFunction(operand));
          }
       }

@@ -12,7 +12,7 @@ namespace NESEmuTests.CPU {
    /// Creates a basic test enviornment where the entire memory bus is writable memory.
    /// </summary>
    public class CPUBasicTestEnviornment {
-      public byte[] DRAM = new byte[65535];
+      public byte[] DRAM = new byte[65536];
       public NESEmu.CPU.CPU CPU = new();
       private bool initialized = false;
       public static CPUBasicTestEnviornment GetNew() {
@@ -53,12 +53,20 @@ namespace NESEmuTests.CPU {
          DRAM[0xFFFB] = (byte)(offset >> 8);
          return this;
       }
-      public CPUBasicTestEnviornment runCycles(int cycles) {
+      public CPUBasicTestEnviornment RunCycles(int cycles) {
          if (!initialized) {
             CPU.ExecuteCPUCyles(8);
             initialized = true;
          }
          CPU.ExecuteCPUCyles(cycles);
+         return this;
+      }
+      public CPUBasicTestEnviornment TriggerNMI() {
+         CPU.TriggerInteruptNMI(); 
+         return this;
+      }
+      public CPUBasicTestEnviornment TriggerIRQ() {
+         CPU.TriggerInteruptIRQ();
          return this;
       }
       public CPUBasicTestEnviornment AssertMemoryValue(ushort address, byte value, string message) {
