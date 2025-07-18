@@ -1,4 +1,7 @@
-﻿//Generated given a basic naming convention by claude.ai. No I was not going to do this by hand.
+﻿using System.Linq;
+using System.Reflection;
+
+//Generated given a basic naming convention by claude.ai. No I was not going to do this by hand.
 
 namespace NESEmu.CPU;
 
@@ -24,6 +27,14 @@ namespace NESEmu.CPU;
 /// ADC_ZerX, ADC_Abs, BMI_Rel, INX, NOP
 /// </summary>
 public static class _6502OPCode {
+   /// <summary>
+   /// Takes in a byte value and returns an opcode. This is very slow and should only be used in debugging.
+   /// </summary>
+   public static string GetOpCode(byte value) {
+      var thisType = typeof(_6502OPCode);
+      var fields = thisType.GetFields(BindingFlags.Public | BindingFlags.Static);
+      return fields.FirstOrDefault((v) => v.IsLiteral && (byte)v.GetRawConstantValue() == value).Name;
+   }
    // ADC - Add with Carry
    public const byte ADC_Imm = 0x69;
    public const byte ADC_Zer = 0x65;

@@ -10,8 +10,8 @@ using System.IO;
 namespace NESEmu {
    public class NESEmulator {
       public CPU.CPU CPU = new CPU.CPU();
+      public PPU.PPU PPU;
       public byte[] WorkRam = new byte[2048];
-      public byte[] VRAM = new byte[2048];
       public Mapper Cartridge;
       public string CurrentGamePath;
 
@@ -57,9 +57,20 @@ namespace NESEmu {
             Cartridge.InteruptCPU = () => CPU.TriggerInteruptIRQ();
          }
 
+         PPU = new PPU.PPU(Cartridge);
+
          CPU.ReadMemory = (address) => {
             if (address <= 0x1FFF) {
                return WorkRam[address % 2048];
+            }
+            else if (address == 0x2002) {
+               return PPU.PPUSTATUSRead();
+            }
+            else if (address == 0x2004) {
+               return PPU.OAMDATARead();
+            }
+            else if (address == 0x2007) {
+               return PPU.PPUDATARead();
             }
             else if (address == 0x4016) {
                return (byte)(Controller1Register.ReadWithPulse() ? 1 : 0);
@@ -75,6 +86,33 @@ namespace NESEmu {
          CPU.WriteMemory = (address, data) => {
             if (address <= 0x1FFF) {
                WorkRam[address % 2048] = data;
+            }
+            //PPU Registers
+            else if (address == 0x2000) {
+               PPU.PPUCTRL = data;
+            }
+            else if (address == 0x2001) {
+               PPU.PPUMASK = data;
+            }
+            else if (address == 0x2003) {
+               PPU.OAMADDR = data;
+            }
+            else if (address == 0x2004) {
+               PPU.OAMDATAWrite(data);
+            }
+            else if (address == 0x2005) {
+               PPU.PPUSCROLLWrite(data);
+            }
+            else if (address == 0x2006) {
+               PPU.PPUADDRWrite(data);
+            }
+            else if (address == 0x2007) {
+               PPU.PPUDATAWrite(data);
+            }
+            else if (address == 0x4014) {
+               CPU.DelegateCycles(CPU.CycleCount % 2 == 0 ? 513 : 514, () => {
+                  PPU.OAMDMAWrite(WorkRam, data << 8);
+               });
             }
             else if (address == 0x4016) {
                //The latching of the controller inputs are bound together
@@ -96,8 +134,14 @@ namespace NESEmu {
          CPU.ExecuteCPUCyles(27552);
       }
 
-      public void Draw() {
-         CPU.ExecuteCPUCyles(2277);
+      public void Draw(GraphicsDevice Graphics, SpriteBatch Batch) {
+         PPU.Draw(Graphics, Batch);
+         if (PPU.SendVBlank)
+            CPU.TriggerInteruptNMI();
+         CPU.ExecuteCPUCyles(1);
+         PPU.IsInVBlank = true;
+         CPU.ExecuteCPUCyles(2276);
+         PPU.IsInVBlank = false;
       }
    }
 }

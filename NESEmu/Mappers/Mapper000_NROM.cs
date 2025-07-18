@@ -19,9 +19,12 @@ namespace NESEmu.Mappers {
       }
 
       public override byte ReadValuePPU(ushort location) {
-         if (location > 0x1FFF)
-            return 0;
-         return CharacterROM[location];
+         if (location < 0x2000)
+            return ProgramROM[location];
+         else if (location < 0x2FFF)
+            return ReadVRAM((ushort)(location - 0x2000));
+         else
+            throw new ArgumentException("Further locations are unused / mapped to internal PPU registers.", nameof(location));
       }
 
       public override void WriteValueCPU(ushort location, byte value) {

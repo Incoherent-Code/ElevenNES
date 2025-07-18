@@ -14,7 +14,7 @@ namespace ElevenNES {
       public SpriteBatch SpriteBatch;
       public UI.UI UI;
       public NESEmulator NESEmulator;
-
+      public Texture2D Texture;
       public ElevenNES() {
          Graphics = new GraphicsDeviceManager(this) {
             PreferredBackBufferHeight = 240 * Config.Instance.Scale,
@@ -47,8 +47,7 @@ namespace ElevenNES {
       }
 
       protected override void Draw(GameTime gameTime) {
-         GraphicsDevice.Clear(Color.Black);
-         NESEmulator?.Draw();
+         NESEmulator?.Draw(GraphicsDevice, SpriteBatch);
          GumService.Default.Draw();
          base.Draw(gameTime);
       }

@@ -16,7 +16,8 @@ namespace NESEmu.CPU {
       // CPU Flags
       private bool CarryFlag;
       private bool ZeroFlag;
-      private bool InteruptDisableFlag;
+      //Apparently starts enabled
+      private bool InteruptDisableFlag = true;
       /// <summary>
       /// This flag is ignored on the NES 6502 as it does not have a BCD Mode
       /// </summary>
@@ -64,7 +65,7 @@ namespace NESEmu.CPU {
 
       // CPU Registers
       private ushort ProgramCounter;
-      private byte StackPointer;
+      private byte StackPointer = 0xFD;
       private byte Accumulator;
       private byte XRegister;
       private byte YRegister;
@@ -141,10 +142,11 @@ namespace NESEmu.CPU {
       }
       /// <summary>
       /// Will delay doing this action for an amount of cycles. When this action is finally performed, the cycle ends.
+      /// This will override the previous Delegated Action.
       /// </summary>
       /// <param name="cycles">Cycles to wait</param>
       /// <param name="action">Action to be taken</param>
-      private void DelegateCycles(int cycles, Action action) {
+      public void DelegateCycles(int cycles, Action action) {
          DelegatedCycles += cycles;
          DelegatedAction = action;
       }
@@ -153,14 +155,14 @@ namespace NESEmu.CPU {
       /// Does not actually wait any cycles before execute next line. Use DelegateCycles instead.
       /// </summary>
       /// <param name="cycles">Cycles to wait</param>
-      private void WaitCycles(int cycles) {
+      public void WaitCycles(int cycles) {
          DelegatedCycles += cycles;
          DelegatedAction = null;
       }
       /// <summary>
       /// Clears any pending action from the cpu on the next cycles. 
       /// </summary>
-      private void ClearWait() {
+      public void ClearWait() {
          DelegatedCycles = 0;
          DelegatedAction = null;
       }
@@ -292,6 +294,7 @@ namespace NESEmu.CPU {
 
             byte instruction = PopProgramByte();
             var instructionInfo = InstructionTable[instruction];
+            var instructionName = _6502OPCode.GetOpCode(instruction);
             if (instructionInfo.CycleTime == 0) {
                throw new CPUException("Invalid Instruction Found.", instruction, (ushort)(ProgramCounter - 1));
             }
