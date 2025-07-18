@@ -294,7 +294,6 @@ namespace NESEmu.CPU {
 
             byte instruction = PopProgramByte();
             var instructionInfo = InstructionTable[instruction];
-            var instructionName = _6502OPCode.GetOpCode(instruction);
             if (instructionInfo.CycleTime == 0) {
                throw new CPUException("Invalid Instruction Found.", instruction, (ushort)(ProgramCounter - 1));
             }
@@ -341,10 +340,11 @@ namespace NESEmu.CPU {
          ProgramCounter = newValue;
       }
       private void BIT(ushort location) {
-         var result = ReadMemory(location) & Accumulator;
-         ZeroFlag = result == 0;
+         var result = ReadMemory(location);
          OverflowFlag = (result & 0b01000000) != 0;
          NegativeFlag = (result & 0x80) != 0;
+         result &= Accumulator;
+         ZeroFlag = result == 0;
       }
       private void CMP(ushort operand) {
          CarryFlag = Accumulator >= operand;
