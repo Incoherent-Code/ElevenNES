@@ -33,7 +33,7 @@ public static class _6502OPCode {
    public static string GetOpCode(byte value) {
       var thisType = typeof(_6502OPCode);
       var fields = thisType.GetFields(BindingFlags.Public | BindingFlags.Static);
-      return fields.FirstOrDefault((v) => v.IsLiteral && (byte)v.GetRawConstantValue() == value).Name;
+      return fields.FirstOrDefault((v) => v.IsLiteral && (byte)v.GetRawConstantValue() == value)?.Name ?? "Unknown";
    }
    // ADC - Add with Carry
    public const byte ADC_Imm = 0x69;

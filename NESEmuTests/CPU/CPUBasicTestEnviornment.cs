@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestPlatform.TestHost;
+using NESEmu.CPU;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,6 +52,17 @@ namespace NESEmuTests.CPU {
          }
          DRAM[0xFFFA] = (byte)offset;
          DRAM[0xFFFB] = (byte)(offset >> 8);
+         return this;
+      }
+      /// <summary>
+      /// Should only be used for debugging purposes.
+      /// </summary>
+      public CPUBasicTestEnviornment WithBreakPoints(CPUBreakpoint[] breaks) {
+#if DEBUG
+         foreach (var item in breaks) {
+            CPU.Breakpoints.Add(item);
+         }
+#endif
          return this;
       }
       public CPUBasicTestEnviornment RunCycles(int cycles) {

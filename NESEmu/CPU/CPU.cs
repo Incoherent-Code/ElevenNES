@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using static NESEmu.NESEmulator;
@@ -13,6 +15,11 @@ namespace NESEmu.CPU {
    /// Instance of 6502 CPU Emulator
    /// </summary>
    public class CPU {
+      public List<CPUBreakpoint> Breakpoints { get; set; } = [
+         //new CPUBreakpoint(0x8211),
+         //new CPUBreakpoint(0x8224),
+         //new CPUBreakpoint(0x822A)
+         ];
       // CPU Flags
       private bool CarryFlag;
       private bool ZeroFlag;
@@ -121,20 +128,20 @@ namespace NESEmu.CPU {
          return ReadMemory((ushort)(ProgramCounter - 1));
       }
 
-      private byte PopStackByte() {
+      public byte PopStackByte() {
          StackPointer++;
          return ReadMemory((ushort)((StackPointer - 1) + 0x0100));
       }
-      private void PushStackByte(byte Byte) {
+      public void PushStackByte(byte Byte) {
          StackPointer--;
          WriteMemory((ushort)(0x0100 + StackPointer), Byte);
       }
       //LSB Numbers
-      private ushort PopStackUShort() {
+      public ushort PopStackUShort() {
          //                 LSB                MSB
          return (ushort)(PopStackByte() | (PopStackByte() << 8));
       }
-      private void PushStackUShort(ushort Ushort) {
+      public void PushStackUShort(ushort Ushort) {
          //MSB
          PushStackByte((byte)(Ushort >> 8));
          //LSB
@@ -294,6 +301,13 @@ namespace NESEmu.CPU {
 
             byte instruction = PopProgramByte();
             var instructionInfo = InstructionTable[instruction];
+#if DEBUG
+            string instructionName;
+            //instructionName = _6502OPCode.GetOpCode(instruction);
+            if (Breakpoints.Any((b) => b.OnExecute && b.Address == ProgramCounter - 1)) {
+               Debugger.Break();
+            }
+#endif
             if (instructionInfo.CycleTime == 0) {
                throw new CPUException("Invalid Instruction Found.", instruction, (ushort)(ProgramCounter - 1));
             }
@@ -335,16 +349,17 @@ namespace NESEmu.CPU {
          WriteMemory(location, value);
       }
       private void BranchWithPenalty(Func<bool> condition, ushort relative) {
+         if (!condition())
+            return;
          var newValue = (ushort)((int)ProgramCounter + (sbyte)relative);
          WaitCycles(((newValue & 0xF0) == (ProgramCounter & 0xF0)) ? 1 : 3);
          ProgramCounter = newValue;
       }
-      private void BIT(ushort location) {
-         var result = ReadMemory(location);
-         OverflowFlag = (result & 0b01000000) != 0;
-         NegativeFlag = (result & 0x80) != 0;
-         result &= Accumulator;
-         ZeroFlag = result == 0;
+      private void BIT(ushort operand) {
+         OverflowFlag = (operand & 0b01000000) != 0;
+         NegativeFlag = (operand & 0x80) != 0;
+         operand &= Accumulator;
+         ZeroFlag = operand == 0;
       }
       private void CMP(ushort operand) {
          CarryFlag = Accumulator >= operand;
@@ -404,7 +419,7 @@ namespace NESEmu.CPU {
          ProgramCounter = location;
       }
       private void JSR(ushort location) {
-         PushStackUShort((ushort)(ProgramCounter - 1));
+         PushStackUShort((ushort)(ProgramCounter));
          JMP(location);
       }
       private void LDA(ushort operand) {
@@ -644,6 +659,12 @@ namespace NESEmu.CPU {
             CycleTime = 2
          };
 
+         InstructionTable[_6502OPCode.BEQ_Rel] = new OPCodeInfo {
+            ExecuteFunction = (operand) => BranchWithPenalty(() => ZeroFlag, operand),
+            GetOperand = PopRelativeOperand,
+            CycleTime = 2
+         };
+
          InstructionTable[_6502OPCode.BIT_Zer] = new OPCodeInfo {
             ExecuteFunction = BIT,
             GetOperand = PopZeroPageOperand,
@@ -675,7 +696,7 @@ namespace NESEmu.CPU {
 
          //The TriggerInterupt Function should handle how long it takes to cycle
          InstructionTable[_6502OPCode.BRK] = new OPCodeInfo {
-            ExecuteFunction = (operand) => TriggerInteruptIRQ(),
+            ExecuteFunction = (operand) => IsPendingIRQ = true,
             GetOperand = ImpliedOperand,
             CycleTime = 1
          };
@@ -792,22 +813,22 @@ namespace NESEmu.CPU {
 
          InstructionTable[_6502OPCode.DEC_Zer] = new OPCodeInfo {
             ExecuteFunction = DEC,
-            GetOperand = PopZeroPageOperand,
+            GetOperand = PopZeroPageLocation,
             CycleTime = 5
          };
          InstructionTable[_6502OPCode.DEC_ZerX] = new OPCodeInfo {
             ExecuteFunction = DEC,
-            GetOperand = PopZeroPageXOperand,
+            GetOperand = PopZeroPageXLocation,
             CycleTime = 6
          };
          InstructionTable[_6502OPCode.DEC_Abs] = new OPCodeInfo {
             ExecuteFunction = DEC,
-            GetOperand = PopAbsoluteOperand,
+            GetOperand = PopAbsoluteLocation,
             CycleTime = 6
          };
          InstructionTable[_6502OPCode.DEC_AbsX] = new OPCodeInfo {
             ExecuteFunction = DEC,
-            GetOperand = PopAbsoluteXOperandNoPC,
+            GetOperand = PopAbsoluteXLocation,
             CycleTime = 7
          };
 
@@ -866,22 +887,22 @@ namespace NESEmu.CPU {
 
          InstructionTable[_6502OPCode.INC_Zer] = new OPCodeInfo {
             ExecuteFunction = INC,
-            GetOperand = PopZeroPageOperand,
+            GetOperand = PopZeroPageLocation,
             CycleTime = 5
          };
          InstructionTable[_6502OPCode.INC_ZerX] = new OPCodeInfo {
             ExecuteFunction = INC,
-            GetOperand = PopZeroPageXOperand,
+            GetOperand = PopZeroPageXLocation,
             CycleTime = 6
          };
          InstructionTable[_6502OPCode.INC_Abs] = new OPCodeInfo {
             ExecuteFunction = INC,
-            GetOperand = PopAbsoluteOperand,
+            GetOperand = PopAbsoluteLocation,
             CycleTime = 6
          };
          InstructionTable[_6502OPCode.INC_AbsX] = new OPCodeInfo {
             ExecuteFunction = INC,
-            GetOperand = PopAbsoluteXOperandNoPC,
+            GetOperand = PopAbsoluteXLocation,
             CycleTime = 7
          };
 
