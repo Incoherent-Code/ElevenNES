@@ -16,9 +16,8 @@ namespace NESEmu.CPU {
    /// </summary>
    public class CPU {
       public List<CPUBreakpoint> Breakpoints { get; set; } = [
-         //new CPUBreakpoint(0x8211),
-         //new CPUBreakpoint(0x8224),
-         //new CPUBreakpoint(0x822A)
+         new CPUBreakpoint(0x80E5),
+         new CPUBreakpoint(0x826B)
          ];
       // CPU Flags
       private bool CarryFlag;
@@ -211,7 +210,7 @@ namespace NESEmu.CPU {
          var newLocation = PopAbsoluteXLocation();
          if (IsCrossingPage(newLocation, XRegister))
             WaitCycles(1);
-         return newLocation;
+         return ReadMemory(newLocation);
       }
       private ushort PopAbsoluteYLocation() => (ushort)((PopProgramByte() | (PopProgramByte() << 8)) + YRegister);
       private ushort PopAbsoluteYOperandNoPC() => ReadMemory(PopAbsoluteYLocation());
@@ -246,13 +245,13 @@ namespace NESEmu.CPU {
       //Refered to as IndY by enum of opcodes
       private ushort PopIndirectIndexedYLocation() {
          var tableEntry = PopProgramByte();
-         return (ushort)(ReadMemory(tableEntry) | (ReadMemory((ushort)(tableEntry + 1)) << 8));
+         return (ushort)(ReadMemory(tableEntry) + (ReadMemory((ushort)(tableEntry + 1)) << 8) + YRegister);
       }
       private ushort PopIndirectIndexedYOperandWPGPenalty() {
          var newLocation = PopIndirectIndexedYLocation();
-         if (IsCrossingPage((ushort)newLocation, YRegister))
+         if (IsCrossingPage((ushort)(newLocation - YRegister), YRegister))
             WaitCycles(1);
-         return ReadMemory((ushort)(newLocation + YRegister));
+         return ReadMemory(newLocation);
       }
       public void ResetCPU() {
          DelegateCycles(6, () => {
