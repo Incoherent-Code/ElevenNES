@@ -134,8 +134,8 @@ namespace NESEmu {
          CPU.ExecuteCPUCyles(27552);
       }
 
-      public void Draw(GraphicsDevice Graphics, SpriteBatch Batch) {
-         PPU.Draw(Graphics, Batch);
+      public void Draw(GraphicsDevice Graphics, SpriteBatch Batch, int Scale) {
+         PPU.Draw(Graphics, Batch, Scale);
          if (PPU.SendVBlank)
             CPU.TriggerInteruptNMI();
          CPU.ExecuteCPUCyles(1);

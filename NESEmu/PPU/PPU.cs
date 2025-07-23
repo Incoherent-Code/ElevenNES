@@ -7,6 +7,7 @@ using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using static NESEmu.NESEmulator;
@@ -232,38 +233,62 @@ namespace NESEmu.PPU {
       private Color[] GetPalette(int index) {
          var output = new Color[4];
          for (int i = 0; i < 4; i++) {
-            output[i] = NTSCPalette.GetColor(PaletteRam[index + i]);
+            output[i] = NTSCPalette.GetColor(PaletteRam[(index * 4) + i]);
          }
+         output[0].A = 0;
          return output;
       }
-      public void Draw(GraphicsDevice graphics, SpriteBatch spriteBatch) {
+      public void Draw(GraphicsDevice graphics, SpriteBatch spriteBatch, int Scale) {
          graphics.Clear(BackdropColor);
+         spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+         RenderSprites(graphics, spriteBatch, Scale, true);
+         RenderSprites(graphics, spriteBatch, Scale, false);
+         spriteBatch.End();
       }
       /// <summary>
       /// Renders sprites using graphics and spriteBatch
       /// </summary>
       /// <param name="priority">If true, sprites set to behind background will be rendered. False will render sprites set to the front.</param>
-      private void RenderSprites(GraphicsDevice graphics, SpriteBatch spriteBatch, int priority) {
-         for (int i = 0; i < 64; i++) {
-            
+      private void RenderSprites(GraphicsDevice graphics, SpriteBatch spriteBatch, int Scale, bool priority) {
+         if (_8by16SpriteMode) {
+            for (int i = 0; i < 64; i++) {
+
+            }
+         }
+         else {
+            for (int i = 0; i < 64; i++) {
+               var sprite = new Sprite(OAMem, i * 4);
+               if (priority != sprite.IsBehindBackground)
+                  continue;
+               if (sprite.x >= 0xF9 || sprite.y >= 0xEF)
+                  continue;
+               //TODO: Flips
+               var texture = LoadFromTile8by8(graphics, sprite.palette, (ushort)((_8by8SpritePatternTable1 ? 0x1000 : 0) + (sprite.tileNumber * 16)));
+               spriteBatch.Draw(
+                  texture, 
+                  ScaleRectangle(new Rectangle(sprite.x, sprite.y, 8, 8), Scale), 
+                  new Rectangle(0, 0, 8, 8), 
+                  Color.White
+                  );
+            }
          }
       }
       private Texture2D LoadFromTile8by8(GraphicsDevice graphics, int paletteIndex, ushort address) {
          var output = new Texture2D(graphics, 8, 8);
          var data = new Color[64];
-         var palette = GetPalette(paletteIndex);
+         var palette = GetPalette(paletteIndex + 4);
 
          long leftPlane = 0;
          for (var i = 0; i < 8; i++) { //Read Left Bitplane from PPU
-            leftPlane = (leftPlane << 8) + Cartridge.ReadValuePPU((ushort)(address + i));
+            leftPlane = (leftPlane << 8) | ReadPPUBus((ushort)(address + i));
          }
 
          long rightPlane = 0;
          for (var i = 0; i < 8; i++) { //Read Right Bitplane from PPU
-            rightPlane = (rightPlane << 8) + Cartridge.ReadValuePPU((ushort)(address + i + 8));
+            rightPlane = (rightPlane << 8) | ReadPPUBus((ushort)(address + i + 8));
          }
 
-         for (var i = 63; i >= 0; i++) {
+         for (var i = 63; i >= 0; i--) {
             data[i] = palette[((rightPlane & 1) << 1) + (leftPlane & 1)];
             leftPlane >>= 1;
             rightPlane >>= 1;
@@ -271,6 +296,13 @@ namespace NESEmu.PPU {
 
          output.SetData(data);
          return output;
+      }
+      private Rectangle ScaleRectangle(Rectangle rectangle, int scale) {
+         rectangle.Width *= scale;
+         rectangle.Height *= scale;
+         rectangle.X *= scale;
+         rectangle.Y *= scale;
+         return rectangle;
       }
    }
 }
