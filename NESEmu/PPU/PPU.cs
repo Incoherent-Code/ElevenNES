@@ -262,6 +262,8 @@ namespace NESEmu.PPU {
                   continue;
                if (sprite.x >= 0xF9 || sprite.y >= 0xEF)
                   continue;
+               if (!ShowSpritesInFirst8Pixels && sprite.x < 8)
+                  continue;
                //TODO: Flips
                var texture = LoadFromTile8by8(graphics, sprite.palette, (ushort)((_8by8SpritePatternTable1 ? 0x1000 : 0) + (sprite.tileNumber * 16)));
                spriteBatch.Draw(
