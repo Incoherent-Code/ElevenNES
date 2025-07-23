@@ -16,8 +16,8 @@ namespace NESEmu.CPU {
    /// </summary>
    public class CPU {
       public List<CPUBreakpoint> Breakpoints { get; set; } = [
-         new CPUBreakpoint(0x80E5),
-         new CPUBreakpoint(0x826B)
+         //new CPUBreakpoint(0x80E5),
+         //new CPUBreakpoint(0x826B)
          ];
       // CPU Flags
       private bool CarryFlag;
@@ -302,6 +302,7 @@ namespace NESEmu.CPU {
             var instructionInfo = InstructionTable[instruction];
 #if DEBUG
             string instructionName;
+            //This causes hugher performance penalties. For debugging only.
             //instructionName = _6502OPCode.GetOpCode(instruction);
             if (Breakpoints.Any((b) => b.OnExecute && b.Address == ProgramCounter - 1)) {
                Debugger.Break();

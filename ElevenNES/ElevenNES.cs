@@ -42,12 +42,13 @@ namespace ElevenNES {
 
       protected override void Update(GameTime gameTime) {
          NESEmulator?.Update();
-         GumService.Default.Update(gameTime);
          base.Update(gameTime);
       }
 
       protected override void Draw(GameTime gameTime) {
-         NESEmulator?.Draw(GraphicsDevice, SpriteBatch);
+         NESEmulator?.Draw(GraphicsDevice, SpriteBatch, Config.Instance.Scale);
+         GumService.Default.Update(gameTime);
+         Window.Title = $"ElevenNES - {1f / gameTime.ElapsedGameTime.TotalSeconds} FPS";
          GumService.Default.Draw();
          base.Draw(gameTime);
       }
