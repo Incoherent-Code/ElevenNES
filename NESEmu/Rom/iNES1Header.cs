@@ -11,7 +11,7 @@ namespace NESEmu.Rom {
       /// Indicates that there is 8KB of Hint Screen Data stored after CHR ROM
       /// </summary>
       public bool ForPlayChoice10 = (header[7] & 0b00000010) != 0;
-      public override int MapperID => base.MapperID & (_Header[7] & 0b11110000);
+      public override int MapperID => base.MapperID | (_Header[7] & 0b11110000);
       /// <summary>
       /// Can be used to specify the size of Program Ram on the cartridge. 8KB is inferred for compatibility. In 8KB Units.
       /// </summary>
