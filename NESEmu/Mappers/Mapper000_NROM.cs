@@ -19,8 +19,11 @@ namespace NESEmu.Mappers {
       }
 
       public override byte ReadValuePPU(ushort location) {
-         if (location < 0x2000)
+         if (location < 0x2000) {
+            if (CharacterROM.Length <= location)
+               return 0;
             return CharacterROM[location];
+         }
          else if (location < 0x2FFF)
             return ReadVRAM((ushort)(location - 0x2000));
          else
