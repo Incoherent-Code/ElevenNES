@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,19 +21,19 @@ namespace NESEmu.Mappers {
       //Since the Cartridge Maps the VRAM using PPU A10 / A11, we will define VRAM on the Mapper
       protected byte[] VRAM = new byte[2048];
       /// <summary>
-      /// Reads VRAM, accounting for nametable mirroring as configured by VRAMMirroringState. Can be overwritten by the mapper.
+      /// Returns the index of the VRAM array where the address would be. Used to impliment mapping.
+      /// Can be overwritten for custom mapping.
       /// </summary>
-      protected virtual byte ReadVRAM(ushort address) {
-         ArgumentOutOfRangeException.ThrowIfGreaterThan(address, 4095, nameof(address));
-         //Nametables / Attribute tables 1 - 4 
+      protected virtual int GetVRAMIndex(ushort address) {
+         address -= 0x2000;
          if (address < 1024)
-            return VRAM[address];
+            return address;
          else if (address < 2048)
-            return VRAM[(VRAMMirroringState == VRAMMirroring.Horizontal) ? address - 1024 : address];
+            return (VRAMMirroringState == VRAMMirroring.Horizontal) ? address - 1024 : address;
          else if (address < 3072)
-            return VRAM[(VRAMMirroringState == VRAMMirroring.Horizontal) ? address - 1024 : address - 2048];
+            return (VRAMMirroringState == VRAMMirroring.Horizontal) ? address - 1024 : address - 2048;
          else
-            return VRAM[address - 2048];
+            return address - 2048;
       }
       /// <summary>
       /// This is the State of VRAM Mirroring on the cartridge. Some use Horizontal, Vertical, Can Alternate, or have custom logic.
