@@ -8,6 +8,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace NESEmu.Mappers {
+   /// <summary>
+   /// Determines the mirroring of the VRAM
+   /// Horizontal, for example, would mirror the nametables across the top and bottom halves of the PPU nametable space.
+   /// </summary>
    public enum VRAMMirroring {
       Horizontal,
       Vertical,
@@ -87,7 +91,7 @@ namespace NESEmu.Mappers {
          if (Header.CustomNametableLayout)
             VRAMMirroringState = VRAMMirroring.Custom;
          else
-            VRAMMirroringState = (Header.HorizontallyMirrored) ? VRAMMirroring.Horizontal : VRAMMirroring.Vertical;
+            VRAMMirroringState = (Header.VerticallyMirrored) ? VRAMMirroring.Vertical : VRAMMirroring.Horizontal;
       }
    }
 }

@@ -19,7 +19,7 @@ namespace NESEmu.Rom {
       /// <summary>
       /// Whether or not the PPU is configured to use horizontal or vertical mirroring. CustomNameTable can indicate that there is something else going on.
       /// </summary>
-      public bool HorizontallyMirrored = (header[6] & 1) != 0;
+      public bool VerticallyMirrored = (header[6] & 1) != 0;
       /// <summary>
       /// Indicates that the cartridge contained battery backup or other persistent memory. Typically acroos 0x6000 thru 0x7FFF.
       /// </summary>
